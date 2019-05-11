@@ -19,60 +19,97 @@
 
 from lxml import etree
 import uploader
+import os
+import base64
+
+
+def extract_coverpage(tree, ns, tmp_file_dir):
+    coverpages = tree.xpath('/fb:FictionBook/fb:description/fb:title-info/fb:coverpage', namespaces=ns)
+    if len(coverpages) == 0:
+        return None
+    else:
+        coverpage = coverpages[0]
+        images = coverpage.xpath('./fb:image', namespaces=ns)
+        if len(images) == 0:
+            return None
+        image = images[0]
+        image_file = image.xpath('./@l:href', namespaces=ns)
+        image_file = image_file[0]
+        # Extract only included binary files
+        if image_file[0] != '#':
+            return None
+        image_file_id = image_file[1:]
+        binary_files = tree.xpath('/fb:FictionBook/fb:binary[@id="' + image_file_id + '"]', namespaces=ns)
+        if len(binary_files) == 0:
+            return None
+        binary_file = binary_files[0]
+        binary_file = binary_file.xpath('./text()', namespaces=ns)
+        if len(binary_file) == 0:
+            return None
+        binary_file = binary_file[0]
+        if len(binary_file) == 0:
+            return None
+        binary_file = str(binary_file)
+        binary_file = base64.b64decode(binary_file)
+        file = open(os.path.join(tmp_file_dir, image_file_id), 'wb')
+        file.write(binary_file)
+        file.close()
+        return os.path.join(tmp_file_dir, image_file_id)
 
 
 def get_fb2_info(tmp_file_path, original_file_extension):
-
     ns = {
         'fb': 'http://www.gribuser.ru/xml/fictionbook/2.0',
         'l': 'http://www.w3.org/1999/xlink',
     }
 
-    fb2_file = open(tmp_file_path)
-    tree = etree.fromstring(fb2_file.read())
+    tree = etree.parse(tmp_file_path)
+    tree = tree.getroot()
 
     authors = tree.xpath('/fb:FictionBook/fb:description/fb:title-info/fb:author', namespaces=ns)
 
     def get_author(element):
         last_name = element.xpath('fb:last-name/text()', namespaces=ns)
         if len(last_name):
-            last_name = last_name[0].encode('utf-8')
+            last_name = last_name[0]
         else:
-            last_name = u''
+            last_name = ''
         middle_name = element.xpath('fb:middle-name/text()', namespaces=ns)
         if len(middle_name):
-            middle_name = middle_name[0].encode('utf-8')
+            middle_name = middle_name[0]
         else:
-            middle_name = u''
+            middle_name = ''
         first_name = element.xpath('fb:first-name/text()', namespaces=ns)
         if len(first_name):
-            first_name = first_name[0].encode('utf-8')
+            first_name = first_name[0]
         else:
-            first_name = u''
-        return (first_name.decode('utf-8') + u' '
-                + middle_name.decode('utf-8') + u' '
-                + last_name.decode('utf-8')).encode('utf-8')
+            first_name = ''
+        full_name = first_name + ' ' + middle_name + ' ' + last_name
 
-    author = str(", ".join(map(get_author, authors)))
+        return full_name
+
+    author = ', '.join(map(get_author, authors))
 
     title = tree.xpath('/fb:FictionBook/fb:description/fb:title-info/fb:book-title/text()', namespaces=ns)
     if len(title):
-        title = str(title[0].encode('utf-8'))
+        title = title[0]
     else:
-        title = u''
+        title = ''
     description = tree.xpath('/fb:FictionBook/fb:description/fb:publish-info/fb:book-name/text()', namespaces=ns)
     if len(description):
-        description = str(description[0].encode('utf-8'))
+        description = description[0]
     else:
-        description = u''
+        description = ''
+
+    coverpage = extract_coverpage(tree, ns, os.path.dirname(tmp_file_path))
 
     return uploader.BookMeta(
         file_path=tmp_file_path,
         extension=original_file_extension,
-        title=title.decode('utf-8'),
-        author=author.decode('utf-8'),
-        cover=None,
-        description=description.decode('utf-8'),
+        title=title,
+        author=author,
+        cover=coverpage,
+        description=description,
         tags="",
         series="",
         series_id="",
