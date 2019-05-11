@@ -24,7 +24,7 @@ import base64
 import sys
 
 def get_fb2_info(tmp_file_path, original_file_extension):
-    if sys.version_info >= 3:
+    if sys.version_info.major >= 3:
         return get_fb2_info_python3(tmp_file_path, original_file_extension)
     else:
         return get_fb2_info_python2(tmp_file_path, original_file_extension)
