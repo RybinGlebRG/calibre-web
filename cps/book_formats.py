@@ -56,7 +56,7 @@ except ImportError as e:
     use_epub_meta = False
 
 try:
-    import fb2
+    import FB2_MetadataExtractor.main as fb2_meta
     use_fb2_meta = True
 except ImportError as e:
     logger.warning('cannot import fb2, extracting fb2 metadata will not work: %s', e)
@@ -78,7 +78,8 @@ def process(tmp_file_path, original_file_name, original_file_extension):
         if ".EPUB" == original_file_extension.upper() and use_epub_meta is True:
             meta = epub.get_epub_info(tmp_file_path, original_file_name, original_file_extension)
         if ".FB2" == original_file_extension.upper() and use_fb2_meta is True:
-            meta = fb2.get_fb2_info(tmp_file_path, original_file_extension)
+            fb2_metadata_extractor = fb2_meta.FB2_MetadataExtractor()
+            meta = fb2_metadata_extractor.extract(tmp_file_path, original_file_extension)
         if original_file_extension.upper() in ['.CBZ', '.CBT']:
             meta = comic.get_comic_info(tmp_file_path, original_file_name, original_file_extension)
 
