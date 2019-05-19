@@ -51,7 +51,9 @@ kthoom.Key = {
     N: 78, O: 79, P: 80, Q: 81, R: 82, S: 83, T: 84, U: 85, V: 86, W: 87, X: 88, Y: 89, Z: 90,
     QUESTION_MARK: 191,
     LEFT_SQUARE_BRACKET: 219,
-    RIGHT_SQUARE_BRACKET: 221
+    RIGHT_SQUARE_BRACKET: 221,
+	MINUS: 109,
+	PLUS: 107
 };
 
 // global variables
@@ -60,14 +62,17 @@ var currentImage = 0;
 var imageFiles = [];
 var imageFilenames = [];
 var totalImages = 0;
+// Scale step in percents
+var scale_step = 3;
+var cur_width = 0;
+var preserve_width = "";
 
 var settings = {
     hflip: false,
     vflip: false,
     rotateTimes: 0,
     fitMode: kthoom.Key.B,
-    theme: "light",
-    direction: 0 // 0 = Left to Right, 1 = Right to Left
+    theme: "light"
 };
 
 kthoom.saveSettings = function() {
@@ -357,7 +362,7 @@ function setImage(url) {
                 scrollTo(0, 0);
                 x.drawImage(img, 0, 0);
 
-                updateScale(false);
+                updateScale(false,preserve_width);
 
                 canvas.style.display = "";
                 $("body").css("overflowY", "");
@@ -365,22 +370,6 @@ function setImage(url) {
             };
             img.src = url;
         }
-    }
-}
-
-function showLeftPage() {
-    if (settings.direction === 0) {
-        showPrevPage()
-    } else {
-        showNextPage()
-    }
-}
-
-function showRightPage() {
-    if (settings.direction === 0) {
-        showNextPage()
-    } else {
-        showPrevPage()
     }
 }
 
@@ -404,26 +393,48 @@ function showNextPage() {
     }
 }
 
-function updateScale(clear) {
+function updateScale(clear, p_preserve_width = "") {
     var mainImageStyle = getElem("mainImage").style;
+	var width = document.getElementById('mainImage').offsetWidth;
+	var height = document.getElementById('mainImage').offsetHeight;
+	var maxWidth = innerWidth;
+	var maxHeight = innerHeight ;
     mainImageStyle.width = "";
     mainImageStyle.height = "";
     mainImageStyle.maxWidth = "";
     mainImageStyle.maxHeight = "";
     var maxheight = innerHeight - 50;
-
-    if (!clear) {
+	
+	if (p_preserve_width !== "") {
+		mainImageStyle.width = p_preserve_width;
+	} else if (!clear) {
         switch (settings.fitMode) {
             case kthoom.Key.B:
                 mainImageStyle.maxWidth = "100%";
                 mainImageStyle.maxHeight = maxheight + "px";
+				preserve_width = "";
                 break;
             case kthoom.Key.H:
                 mainImageStyle.height = maxheight + "px";
+				preserve_width = "";
                 break;
             case kthoom.Key.W:
-                mainImageStyle.width = "100%";
+				var widthPercent = "100%";
+                mainImageStyle.width = widthPercent;
+				preserve_width = mainImageStyle.width;
                 break;
+			case kthoom.Key.PLUS:
+				var widthPercent = (width / maxWidth) * 100;
+				mainImageStyle.width = (widthPercent + scale_step) +"%" ;
+				settings.fitMode = kthoom.Key.W;
+				preserve_width = mainImageStyle.width;
+				break;
+			case kthoom.Key.MINUS:
+				var widthPercent = (width / maxWidth) * 100;
+				mainImageStyle.width = (parseFloat(widthPercent) - scale_step) +"%" ;
+				settings.fitMode = kthoom.Key.W;
+				preserve_width = mainImageStyle.width;
+				break;
             default:
                 break;
         }
@@ -438,11 +449,11 @@ function keyHandler(evt) {
     switch (evt.keyCode) {
         case kthoom.Key.LEFT:
             if (hasModifier) break;
-            showLeftPage();
+            showPrevPage();
             break;
         case kthoom.Key.RIGHT:
             if (hasModifier) break;
-            showRightPage();
+            showNextPage();
             break;
         case kthoom.Key.L:
             if (hasModifier) break;
@@ -503,13 +514,23 @@ function keyHandler(evt) {
             if (evt.shiftKey && atTop) {
                 evt.preventDefault();
                 // If it's Shift + Space and the container is at the top of the page
-                showLeftPage();
+                showPrevPage();
             } else if (!evt.shiftKey && atBottom) {
                 evt.preventDefault();
                 // If you're at the bottom of the page and you only pressed space
-                showRightPage();
+                showNextPage();
                 container.scrollTop(0);
             }
+            break;
+		case kthoom.Key.PLUS:
+			if (hasModifier) break;
+            settings.fitMode = kthoom.Key.PLUS;
+            updateScale(false);
+            break;
+		case kthoom.Key.MINUS:
+			if (hasModifier) break;
+            settings.fitMode = kthoom.Key.MINUS;
+            updateScale(false);
             break;
         default:
             //console.log('KeyCode', evt.keyCode);
@@ -638,25 +659,25 @@ function init(filename) {
 
         // Determine if the user clicked/tapped the left side or the
         // right side of the page.
-        var clickedLeft = false;
+        var clickedPrev = false;
         switch (settings.rotateTimes) {
             case 0:
-                clickedLeft = clickX < (comicWidth / 2);
+                clickedPrev = clickX < (comicWidth / 2);
                 break;
             case 1:
-                clickedLeft = clickY < (comicHeight / 2);
+                clickedPrev = clickY < (comicHeight / 2);
                 break;
             case 2:
-                clickedLeft = clickX > (comicWidth / 2);
+                clickedPrev = clickX > (comicWidth / 2);
                 break;
             case 3:
-                clickedLeft = clickY > (comicHeight / 2);
+                clickedPrev = clickY > (comicHeight / 2);
                 break;
         }
-        if (clickedLeft) {
-            showLeftPage();
+        if (clickedPrev) {
+            showPrevPage();
         } else {
-            showRightPage();
+            showNextPage();
         }
     });
 }
