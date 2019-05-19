@@ -1,6 +1,7 @@
 {% extends "layout.html" %}
 {% block body %}
-{% if g.user.show_detail_random() %}
+<!-- Added stub to not show discover random books -->
+{% if g.user.show_detail_random() and false %}
 <div class="discover random-books">
   <h2 class="random-books">{{_('Discover (Random Books)')}}</h2>
   <div class="row">
