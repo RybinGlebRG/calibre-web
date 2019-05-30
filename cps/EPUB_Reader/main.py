@@ -12,7 +12,7 @@ class EPUB_Reader:
         pass
 
     def test(self):
-        file_name = 'C:\\Users\\Gleb\\Downloads\\Sato Tsutomu, Ishida Kana_Mahouka Koukou no Rettousei, Vol.1\\index_split_001.xhtml'
+        file_name = 'D:\\test\\index_split_001.xhtml'
 
         epub_parser = EPUB_Parser.EPUB_Parser()
         file_manager = FileManager.FileManager()
@@ -27,9 +27,3 @@ class EPUB_Reader:
         # Serialize
         result = json.dumps(files)
         return result
-
-    def test2(self):
-        file_name = 'D:\\Pycharm_Projects\\calibre-web\\cps\\EPUB_Reader\\templates\\read.html'
-        f = io.open(file_name, mode='r', encoding='utf-8')
-        text = f.read()
-        return
