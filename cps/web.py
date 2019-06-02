@@ -3945,10 +3945,10 @@ def convert_bookformat(book_id):
     return redirect(request.environ["HTTP_REFERER"])
 
 
-import EPUB_Reader.main as epub_lib
+from ReaderController import main as reader_lib
 
-epub_reader = epub_lib.EPUB_Reader()
-app.add_url_rule("/test", "test", epub_reader.test)
-@app.route("/test2")
-def test2():
-    return render_template("/epub_reader/read.html")
+reader_controller = reader_lib.ReaderController(render_routine=render_title_template, db=db, config=config,
+                                                request=request)
+
+app.add_url_rule("/api/readers/<reader_format>", "reader", reader_controller.reader)
+app.add_url_rule("/api/books/<book_id>", "book", reader_controller.book)

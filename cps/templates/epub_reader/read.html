@@ -23,6 +23,11 @@
         <div id="loader"><img src="{{ url_for('static', filename='img/loader.gif') }}"></div>
       </div>
       <div class="overlay"></div>
+	  <script type="text/javascript">
+			window.calibre={
+			book_id: {{ book_id }}
+			}
+	  </script>
       <script src="{{ url_for('static', filename='epub_reader/epub_reader.js') }}"></script>
     </body>
 </html>
