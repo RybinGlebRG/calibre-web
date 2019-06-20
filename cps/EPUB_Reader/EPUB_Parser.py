@@ -1,5 +1,6 @@
 from lxml import etree
 import os
+import xml.etree.ElementTree as ET
 
 
 class EPUB_Parser:
@@ -41,3 +42,15 @@ class EPUB_Parser:
             res["type"] = self.determine_type(file)
             files.append(res)
         return files
+
+    def extract_head_children(self, string):
+        tree = ET.fromstring(string)
+        head_children = None
+        for child in tree:
+            if "head" in child.tag:
+                head = child
+                for grandchild in child:
+                    res = ET.tostring(grandchild, "unicode", "html")
+                    print(str(grandchild))
+
+        print(head_children)

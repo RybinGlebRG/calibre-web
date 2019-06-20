@@ -49,6 +49,8 @@ class EPUB_Reader:
         files = file_manager.collect_files(additional_files_names, os.path.basename(file_path),
                                            os.path.dirname(file_path))
 
+        epub_parser.extract_head_children(files[os.path.basename(file_path)]["data"])
+
         # Serialize
         result = json.dumps(files)
         return result
