@@ -49,10 +49,12 @@ class EPUB_Reader:
         files = file_manager.collect_files(additional_files_names, os.path.basename(file_path),
                                            os.path.dirname(file_path))
 
-        epub_parser.extract_head_children(files[os.path.basename(file_path)]["data"])
+        head_children = epub_parser.extract_head_children(files[os.path.basename(file_path)]["data"])
+        body_children = epub_parser.extract_body_children(files[os.path.basename(file_path)]["data"])
 
         # Serialize
         result = json.dumps(files)
+        result = "<html><head>"+head_children+"</head>"+"<body>"+body_children+"</body></html>"
         return result
 
     def get_content_list(self, dir):

@@ -1,6 +1,8 @@
 from lxml import etree
 import os
 import xml.etree.ElementTree as ET
+from html.parser import HTMLParser
+import re
 
 
 class EPUB_Parser:
@@ -44,13 +46,24 @@ class EPUB_Parser:
         return files
 
     def extract_head_children(self, string):
-        tree = ET.fromstring(string)
-        head_children = None
-        for child in tree:
-            if "head" in child.tag:
-                head = child
-                for grandchild in child:
-                    res = ET.tostring(grandchild, "unicode", "html")
-                    print(str(grandchild))
+        result = re.search(r'<head>', string, re.IGNORECASE)
+        start = result.end()
+        result = re.search(r'</head>', string, re.IGNORECASE)
+        end = result.start()
+        head = string[start:end].strip()
+        return head
 
-        print(head_children)
+    def extract_body_children(self, string):
+        result = re.search(r'<body[^>]*>', string, re.IGNORECASE)
+        start = result.end()
+        result = re.search(r'</body>', string, re.IGNORECASE)
+        end = result.start()
+        body = string[start:end].strip()
+        return body
+
+    def extract_body_attributes(self,string):
+        result = re.search(r'<body[^>]*>', string, re.IGNORECASE)
+        start = result.start()+len("<body")
+        end = result.end()-len(">")
+        body_attributes = string[start:end].strip()
+        return body_attributes
